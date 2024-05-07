@@ -293,20 +293,18 @@ class HT<K, V extends Serializable> implements Serializable {
      *                                found
      */
     private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-        try {
-            ois.defaultReadObject();
-            // Initialize an empty table regardless of the serialized data.
-            table = new ArrayList<>(Collections.nCopies(DEFAULT_INITIAL_CAPACITY, null));
-            size = 0; // Reset size
-        } catch (OptionalDataException ode) {
-            System.out.println("Deserialization failed, reinitializing the hashtable.");
-            table = new ArrayList<>(Collections.nCopies(DEFAULT_INITIAL_CAPACITY, null));
-            size = 0;
-        } catch (IOException | ClassNotFoundException e) {
-            throw e;
+        ois.defaultReadObject();
+        int totalEntries = ois.readInt();  // Read the total number of entries
+        int size = ois.readInt();  // Read the size
+        table = new ArrayList<>(Collections.nCopies(size, null));  // Initialize the table with the read size
+
+        for (int i = 0; i < totalEntries; i++) {
+            K key = (K) ois.readObject();  // Read the key
+            V value = (V) ois.readObject();  // Read the value
+            put(key, value);  // Reinsert the key-value pair into the hash table
         }
     }
-
+    
     /**
      * Generates a hash code for a given key.
      *
